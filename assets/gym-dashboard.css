@@ -1,0 +1,554 @@
+/* ============================================
+   Gym Dashboard Styles
+   ============================================ */
+
+/* Dashboard Container */
+#gym-dashboard {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1em;
+}
+
+/* Header */
+.dashboard-header {
+  margin-bottom: 2em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dashboard-intro {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 0.5em;
+}
+
+.last-updated {
+  font-size: 0.9em;
+  color: #828282;
+  font-style: italic;
+}
+
+/* Loading & Error States */
+.loading,
+.error {
+  text-align: center;
+  padding: 3em 1em;
+  font-size: 1.1em;
+}
+
+.error {
+  color: #c0392b;
+  background-color: #ffe6e6;
+  border: 1px solid #c0392b;
+  border-radius: 4px;
+}
+
+/* Chart Grid Layout */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2em;
+  margin-top: 2em;
+  max-width: 100%;
+}
+
+.chart-container {
+  background: #fff;
+  padding: 1.5em;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container h2 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  font-size: 1.5em;
+  color: #111;
+}
+
+.chart-description {
+  color: #666;
+  font-size: 0.9em;
+  margin-bottom: 1em;
+}
+
+.chart-wide {
+  grid-column: 1 / -1;
+}
+
+/* Chart Canvas */
+.chart-container canvas {
+  max-height: 500px;
+  min-height: 400px;
+}
+
+/* Chart Controls */
+.chart-controls {
+  margin-bottom: 1em;
+  padding: 0.75em;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.chart-controls label {
+  display: inline-block;
+  margin-right: 0.5em;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.chart-controls select {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95em;
+  background-color: #fff;
+  font-family: inherit;
+}
+
+.chart-controls select[multiple] {
+  min-height: 120px;
+}
+
+/* Frequency Calendar Styles */
+.frequency-calendar {
+  padding: 1em;
+}
+
+.calendar-grid {
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(53, 12px);
+  grid-auto-rows: 12px;
+  gap: 3px;
+  margin-bottom: 1em;
+}
+
+.day-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background-color: #ebedf0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.day-cell:hover {
+  outline: 2px solid #2a7ae2;
+  outline-offset: 1px;
+  transform: scale(1.2);
+}
+
+.day-cell[data-level="1"] {
+  background-color: #c6e48b;
+}
+.day-cell[data-level="2"] {
+  background-color: #7bc96f;
+}
+.day-cell[data-level="3"] {
+  background-color: #239a3b;
+}
+.day-cell[data-level="4"] {
+  background-color: #196127;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5em;
+  font-size: 0.85em;
+  color: #666;
+}
+
+.legend-scale {
+  display: flex;
+  gap: 3px;
+}
+
+.legend-scale span {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-scale .level-0 {
+  background-color: #ebedf0;
+}
+.legend-scale .level-1 {
+  background-color: #c6e48b;
+}
+.legend-scale .level-2 {
+  background-color: #7bc96f;
+}
+.legend-scale .level-3 {
+  background-color: #239a3b;
+}
+.legend-scale .level-4 {
+  background-color: #196127;
+}
+
+/* PR Table Styles */
+.pr-muscle-group {
+  margin-bottom: 2.5em;
+}
+
+.pr-muscle-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  margin-bottom: 1em;
+  padding-bottom: 0.75em;
+  border-bottom: 3px solid #e8e8e8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pr-muscle-header:hover {
+  opacity: 0.8;
+}
+
+.pr-muscle-color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.pr-muscle-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+  color: #111;
+  flex-grow: 1;
+}
+
+.pr-muscle-toggle {
+  font-size: 1.2em;
+  transition: transform 0.2s;
+}
+
+.pr-muscle-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.pr-muscle-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  margin-bottom: 0;
+}
+
+.pr-muscle-table th {
+  background-color: #f5f5f5;
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.pr-muscle-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.pr-muscle-table td.highlight {
+  font-weight: 600;
+  color: #2a7ae2;
+  font-size: 1.05em;
+}
+
+.pr-muscle-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.pr-muscle-table .medal {
+  font-size: 1.2em;
+  margin-right: 0.3em;
+}
+
+.pr-muscle-table.hidden {
+  display: none;
+}
+
+/* Raw Data Table Styles */
+.raw-data-section {
+  margin-top: 3em;
+  padding-top: 2em;
+  border-top: 2px solid #e8e8e8;
+}
+
+.table-controls {
+  display: flex;
+  gap: 1em;
+  margin-bottom: 1.5em;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.table-control-group {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.table-control-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+  min-width: 80px;
+}
+
+.table-control-group input,
+.table-control-group select {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: inherit;
+  background-color: #fff;
+}
+
+.table-control-group input[type="text"] {
+  min-width: 150px;
+}
+
+.clear-filters-btn {
+  padding: 0.5em 1em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background-color: #e8e8e8;
+  border-color: #999;
+}
+
+.raw-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  overflow-x: auto;
+}
+
+.raw-data-table th {
+  background-color: #2a7ae2;
+  color: white;
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #1a5ab3;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.raw-data-table th:hover {
+  background-color: #1a5ab3;
+}
+
+.raw-data-table th .sort-indicator {
+  font-size: 0.75em;
+  margin-left: 0.3em;
+  opacity: 0.7;
+}
+
+.raw-data-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.raw-data-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.raw-data-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.raw-data-table .exercise-name {
+  font-weight: 500;
+  color: #2a7ae2;
+}
+
+.raw-data-table .muscle-group {
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+.raw-data-table .to-failure {
+  text-align: center;
+  font-weight: 600;
+  color: #c0392b;
+}
+
+.raw-data-table .to-failure.no {
+  color: #888;
+}
+
+.table-info {
+  margin-top: 1em;
+  padding: 0.75em 1em;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.table-info strong {
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 800px) {
+  .chart-container canvas {
+    max-height: 350px;
+    min-height: 300px;
+  }
+
+  .days-grid {
+    grid-template-columns: repeat(26, 12px);
+  }
+}
+
+@media (max-width: 600px) {
+  .chart-container {
+    padding: 1em;
+  }
+
+  .chart-container h2 {
+    font-size: 1.25em;
+  }
+
+  .chart-controls select {
+    width: 100%;
+    margin-top: 0.5em;
+  }
+
+  .chart-controls label {
+    display: block;
+    margin-bottom: 0.3em;
+  }
+
+  /* Stack PR table on mobile */
+  .pr-table thead {
+    display: none;
+  }
+
+  .pr-table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  .pr-table td {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    padding: 8px 0;
+  }
+
+  .pr-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #666;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1em;
+    padding-bottom: 0.75em;
+  }
+
+  .dashboard-intro {
+    font-size: 1em;
+  }
+
+  .chart-grid {
+    gap: 1em;
+  }
+
+  .chart-container h2 {
+    margin-bottom: 0.75em;
+  }
+
+  .chart-description {
+    font-size: 0.85em;
+    margin-bottom: 0.75em;
+  }
+
+  /* Mobile PR table adjustments */
+  .pr-muscle-header {
+    gap: 0.5em;
+    padding-bottom: 0.5em;
+    margin-bottom: 0.75em;
+  }
+
+  .pr-muscle-header h3 {
+    font-size: 1.1em;
+  }
+
+  .pr-muscle-color-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  .pr-muscle-table th,
+  .pr-muscle-table td {
+    padding: 8px 6px;
+    font-size: 0.85em;
+  }
+
+  /* Mobile table adjustments */
+  .table-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75em;
+  }
+
+  .table-control-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .table-control-group label {
+    min-width: auto;
+  }
+
+  .table-control-group input,
+  .table-control-group select {
+    width: 100%;
+  }
+
+  .clear-filters-btn {
+    width: 100%;
+  }
+
+  .raw-data-table {
+    font-size: 0.75em;
+  }
+
+  .raw-data-table th,
+  .raw-data-table td {
+    padding: 6px 4px;
+  }
+}

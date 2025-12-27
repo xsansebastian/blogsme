@@ -58,3 +58,4 @@ exclude:
   - vendor/ruby/
   - CLAUDE.md
   - .claude/
+  - .raw-gym-trains/
