@@ -20,18 +20,3 @@ I've been playing football all my life, being a healthy guy till the late years 
 So if I have to define myself in a phrase.
 
 **I'm a father. I'm a husband. I'm a techy guy. I'm a HouseMusic lover. I'm a spiritual healer. I'm a Gamer**
-
-
-
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
-
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
-
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
-
-
-[jekyll-organization]: https://github.com/jekyll
