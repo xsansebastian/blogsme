@@ -19,10 +19,9 @@ You can expect posts about:
 
 **Tech & Innovation**
 **Spiritual Healing & Self-Discovery**
-**Trainings & Knowledge Sharing**
 **House Music Movement**
 **Gaming**
-**Health & Being Human**
+
 ## Why All of This?
 
 Because **I am all of this**. I'm not just a tech guy who dabbles in spirituality. I'm not just a spiritual healer with a day job in SAP. I'm not just a father, a husband, a gamer, or a House music enthusiast.
