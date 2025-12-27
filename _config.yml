@@ -23,7 +23,7 @@ title: Sacred Mind, Different Design
 description: >- # this means to ignore newlines until "baseurl:"
   Plain text, complex thoughts. A neurodivergent blog exploring tech,
   spirituality, and house music... differently, by design.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/blogsme" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
 #github_username:  jekyll
