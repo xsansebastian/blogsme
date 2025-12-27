@@ -3,7 +3,7 @@
    ============================================ */
 
 // Constants
-const CSV_PATH = './data/training.csv';
+const CSV_PATH = '../assets/data/training.csv';
 const MUSCLE_COLORS = {
   'Espalda': '#2a7ae2',
   'Pecho': '#5c2a9d',
