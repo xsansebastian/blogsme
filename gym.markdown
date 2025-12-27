@@ -113,5 +113,8 @@ permalink: /gym/
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+<!-- Pass baseurl to JavaScript -->
+<script>window.SITE_BASEURL = "{{ site.baseurl }}";</script>
+
 <!-- Load Dashboard Logic -->
 <script src="{{ '/assets/gym-dashboard.js' | relative_url }}"></script>
