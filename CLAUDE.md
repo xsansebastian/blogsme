@@ -22,7 +22,7 @@ Installs all gem dependencies from Gemfile. Run this after cloning or when updat
 ```bash
 bundle exec jekyll serve
 ```
-Starts dev server with auto-regeneration at `http://localhost:4000`.
+Starts dev server with auto-regeneration at `http://localhost:4000/blogsme`.
 - Watches for file changes and rebuilds automatically
 - **Important**: Configuration changes in `_config.yml` require manual server restart
 
