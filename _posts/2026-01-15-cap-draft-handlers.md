@@ -35,12 +35,12 @@ When users interact with a Fiori Elements application, their actions trigger spe
 
 | User Action | CAP Event | Target Entity | Entities Affected | When to Use Handler | Key Patterns |
 |------------|-----------|---------------|-------------------|---------------------|--------------|
-| **Create** (New) | `CREATE` | `EntityA.drafts` | EntityA draft only | Set defaults, initialize structure | `srv.before/after('CREATE', 'EntityA.drafts')` |
+| **Create** (New) | `NEW` | `EntityA.drafts`, `EntityB.drafts` | EntityA draft; EntityB when adding a child row | Set defaults, initialize structure | `srv.before/after('NEW', 'EntityA.drafts')` / `srv.before/after('NEW', 'EntityB.drafts')` |
 | **Edit** (Existing) | `EDIT` | `EntityA` | All entities (A, B) - active → draft copy | Validate edit allowed, enrich draft context | `srv.before/after('EDIT', 'EntityA')` |
-| **Update** (Modify fields) | `UPDATE` | `EntityA.drafts`, `EntityB.drafts` | Specific draft entity being changed | Field validation, calculations, cascade updates | `srv.before/after('UPDATE', '*.drafts')` |
+| **Update** (Modify fields) | `PATCH` | `EntityA.drafts`, `EntityB.drafts` | Specific draft entity being changed | Field validation, calculations, cascade updates | `srv.before/after('PATCH', '*.drafts')` |
 | **Save/Activate** | `SAVE` then `CREATE`/`UPDATE` | `EntityA.drafts` → `EntityA` | All entities (draft → active) | **Critical**: Validate all entities, business logic | `srv.before('SAVE', 'EntityA.drafts')` + `srv.on('CREATE'/'UPDATE', 'EntityA')` |
-| **Delete** | `DELETE` | `EntityA` or `EntityA.drafts` | All entities via cascade | Prevent deletion, cleanup resources | `srv.before/after('DELETE', 'EntityA')` |
-| **Cancel/Discard** | `discard` | `EntityA.drafts` | All draft entities deleted | Cleanup temp resources | `srv.before/after('discard', 'EntityA.drafts')` |
+| **Delete** | `DELETE` | `EntityA` or `EntityA.drafts`; `EntityB.drafts` for individual child rows | All entities via cascade (root delete); specific child row | Prevent deletion, cleanup resources | `srv.before/after('DELETE', 'EntityA')` / `srv.before/after('DELETE', 'EntityB.drafts')` |
+| **Cancel/Discard** | `DISCARD` | `EntityA.drafts` | All draft entities deleted | Cleanup temp resources | `srv.before/after('DISCARD', 'EntityA.drafts')` |
 
 **Important Notes:**
 - **SAVE is special**: It triggers BOTH a `SAVE` event on drafts AND either `CREATE` (for new entities) or `UPDATE` (for edited entities) on the active entity. You need handlers for all three.
@@ -48,32 +48,27 @@ When users interact with a Fiori Elements application, their actions trigger spe
 - **Deep operations**: CAP handles the entire hierarchy automatically during EDIT and SAVE. Trust it unless you have specific needs.
 - **Use `.drafts` qualifier**: Always distinguish between `EntityA` (active) and `EntityA.drafts` (draft) in your handlers.
 
-### Action 1: CREATE (Creating a New Draft)
+### Action 1: NEW (Creating a New Draft)
 
-**User Action**: Clicks the "Create" button in the list report
+**User Action**: Clicks the "Create" button in the list report, or adds a new row to a composition child table
 
-**CAP Event**: `CREATE` on `EntityA.drafts`
+**CAP Event**: `NEW` on `EntityA.drafts` (new parent draft) or `NEW` on `EntityB.drafts` (new child row added during editing)
 
-**Entities Affected**: EntityA draft is created with default values
+**Entities Affected**: EntityA draft when creating; EntityB draft when the user adds a row to the composition table
 
 **When You Need a Handler**: To set default values, initialize related entities, or prepare the initial structure
 
 ```typescript
 import { Request } from '@sap/cds';
 
-srv.before('CREATE', 'EntityA.drafts', async (req: Request) => {
+// Fires when the user clicks "Create" in the list report
+srv.before('NEW', 'EntityA.drafts', async (req: Request) => {
   // Set default values for the new draft
   req.data.status = 'NEW';
   req.data.createdBy = req.user.id;
-
-  // Initialize empty arrays for compositions if needed
-  // CAP handles the structure, but you might want defaults
-  if (!req.data.toEntityB) {
-    req.data.toEntityB = [];
-  }
 });
 
-srv.after('CREATE', 'EntityA.drafts', async (data: EntityA, req: Request) => {
+srv.after('NEW', 'EntityA.drafts', async (data: EntityA, req: Request) => {
   // Enrich the created draft with calculated fields
   // or fetch additional data to display
   const { ID } = data;
@@ -81,6 +76,22 @@ srv.after('CREATE', 'EntityA.drafts', async (data: EntityA, req: Request) => {
   // Example: Calculate some initial values based on user context
   await UPDATE('EntityA.drafts')
     .set({ calculatedField: someCalculation() })
+    .where({ ID });
+});
+
+// Fires when the user adds a new row to the EntityB composition table
+// This is independent from the parent NEW — it fires on the child entity directly
+srv.before('NEW', 'EntityB.drafts', async (req: Request) => {
+  // Set defaults for the new child row
+  req.data.position = await getNextPosition(req.data.parent_ID);
+  req.data.lineStatus = 'OPEN';
+});
+
+srv.after('NEW', 'EntityB.drafts', async (data: EntityB, req: Request) => {
+  // Post-process the newly created child row
+  const { ID } = data;
+  await UPDATE('EntityB.drafts')
+    .set({ computedField: computeDefault(data) })
     .where({ ID });
 });
 ```
@@ -122,18 +133,18 @@ srv.after('EDIT', 'EntityA', async (data: EntityA, req: Request) => {
 });
 ```
 
-### Action 3: UPDATE (Modifying a Draft)
+### Action 3: PATCH (Modifying a Draft)
 
 **User Action**: Changes field values while editing (each field change triggers this)
 
-**CAP Event**: `UPDATE` on `EntityA.drafts` or `EntityB.drafts`
+**CAP Event**: `PATCH` on `EntityA.drafts` or `EntityB.drafts`
 
 **Entities Affected**: The specific draft entity being modified
 
 **When You Need a Handler**: For field-level validation, calculated fields, or cascading updates
 
 ```typescript
-srv.before('UPDATE', 'EntityA.drafts', async (req: Request) => {
+srv.before('PATCH', 'EntityA.drafts', async (req: Request) => {
   // Validate the changes before they're applied
   const { amount, currency } = req.data;
 
@@ -147,7 +158,7 @@ srv.before('UPDATE', 'EntityA.drafts', async (req: Request) => {
   }
 });
 
-srv.after('UPDATE', 'EntityA.drafts', async (data: EntityA, req: Request) => {
+srv.after('PATCH', 'EntityA.drafts', async (data: EntityA, req: Request) => {
   // Cascade updates to child entities if needed
   const { ID } = data;
 
@@ -160,7 +171,7 @@ srv.after('UPDATE', 'EntityA.drafts', async (data: EntityA, req: Request) => {
 });
 
 // Handle updates on child entities
-srv.before('UPDATE', 'EntityB.drafts', async (req: Request) => {
+srv.before('PATCH', 'EntityB.drafts', async (req: Request) => {
   // Validate child entity changes
   // These fire independently when users edit composition tables
   if (req.data.invalidField) {
@@ -283,11 +294,28 @@ srv.after('DELETE', 'EntityA', async (data: EntityA, req: Request) => {
   await logDeletion(data.ID, req.user.id);
 });
 
-// Deleting drafts (when user deletes unsaved changes)
+// Deleting the entire draft (when user deletes the whole unsaved record)
 srv.before('DELETE', 'EntityA.drafts', async (req: Request) => {
   // Usually no custom logic needed here
   // CAP handles cascade deletion of draft compositions
   // But you might want to log or clean up
+});
+
+// Fires when the user removes an individual row from the EntityB composition table
+// This is different from deleting the whole parent draft — it targets a specific child row
+srv.before('DELETE', 'EntityB.drafts', async (req: Request) => {
+  const { ID } = req.data;
+  const item = await SELECT.one.from('EntityB.drafts').where({ ID });
+
+  if (item.protected) {
+    req.error(403, `Item ${item.ID} cannot be removed`);
+  }
+});
+
+srv.after('DELETE', 'EntityB.drafts', async (data: EntityB, req: Request) => {
+  // Child row has been removed from the draft composition
+  // You might want to recalculate totals or reorder positions on the parent draft
+  await recalculateTotals(data.parent_ID);
 });
 ```
 
@@ -302,7 +330,7 @@ srv.before('DELETE', 'EntityA.drafts', async (req: Request) => {
 **When You Need a Handler**: To clean up temporary data or resources created during draft editing
 
 ```typescript
-srv.before('discard', 'EntityA.drafts', async (req: Request) => {
+srv.before('DISCARD', 'EntityA.drafts', async (req: Request) => {
   // Clean up any temporary resources or cached data
   const { ID } = req.data;
 
@@ -312,12 +340,155 @@ srv.before('discard', 'EntityA.drafts', async (req: Request) => {
   // CAP will automatically delete all draft entities in the composition
 });
 
-srv.after('discard', 'EntityA.drafts', async (data: EntityA, req: Request) => {
+srv.after('DISCARD', 'EntityA.drafts', async (data: EntityA, req: Request) => {
   // Draft has been discarded
   // Log the discard action if needed
   await logDraftDiscard(data.ID, req.user.id);
 });
 ```
+
+## Handlers Without Draft: The Simpler Case
+
+To appreciate the draft choreography above, it helps to see what handlers look like for entities **without** draft enabled. The contrast is striking—no `.drafts` qualifier, no `NEW`/`EDIT`/`PATCH`/`SAVE`/`DISCARD` events. Just straightforward CRUD.
+
+For this section, our model is:
+
+- **Entity Z**: Non-draft parent entity
+- **Entity W**: Composition of Entity Z (also non-draft)
+
+```
+Entity Z (no draft)
+  └── Entity W[] (composition, also no draft)
+```
+
+### Non-Draft Quick Reference
+
+| User Action | CAP Event | Target Entity | Key Difference from Draft |
+|------------|-----------|---------------|--------------------------|
+| **Create** | `CREATE` | `EntityZ` / `EntityW` | Persisted immediately, no draft step |
+| **Read** | `READ` | `EntityZ` / `EntityW` | Same in both cases |
+| **Update** | `UPDATE` | `EntityZ` / `EntityW` | Changes applied directly, no `PATCH` alias |
+| **Delete** | `DELETE` | `EntityZ` / `EntityW` | No draft/active distinction |
+
+### CREATE (Direct Persistence)
+
+Without drafts, a `CREATE` event persists the entity immediately—there's no intermediary draft state. Child entities in compositions fire their own `CREATE` events independently.
+
+```typescript
+srv.before('CREATE', 'EntityZ', async (req: Request) => {
+  // Validate and set defaults before the entity is persisted
+  if (!req.data.requiredField) {
+    req.error(400, 'Required field is missing');
+  }
+  req.data.status = 'NEW';
+  req.data.createdBy = req.user.id;
+});
+
+srv.after('CREATE', 'EntityZ', async (data: EntityZ, req: Request) => {
+  // Entity is already persisted at this point
+  await sendNotification({
+    message: 'Entity Z has been created',
+    entityId: data.ID
+  });
+});
+
+// Composition child: fires when EntityW items are created
+srv.before('CREATE', 'EntityW', async (req: Request) => {
+  if (!req.data.mandatoryField) {
+    req.error(400, 'EntityW requires a mandatory field');
+  }
+});
+```
+
+### READ
+
+Reading works the same whether the entity is draft-enabled or not. Without drafts, there's only one version of the data—no need to filter by `IsActiveEntity`.
+
+```typescript
+srv.before('READ', 'EntityZ', async (req: Request) => {
+  // Apply filters, restrict access, or modify the query
+  // This fires for every read request (list and detail views)
+});
+
+srv.after('READ', 'EntityZ', async (data: EntityZ[], req: Request) => {
+  // Enrich the response with calculated fields
+  for (const entity of data) {
+    entity.displayName = `${entity.name} (${entity.status})`;
+  }
+});
+
+// Composition child reads (e.g., navigating to the items table)
+srv.after('READ', 'EntityW', async (data: EntityW[], req: Request) => {
+  for (const item of data) {
+    item.computedValue = item.quantity * item.pricePerUnit;
+  }
+});
+```
+
+### UPDATE (Direct Modification)
+
+Without drafts, each `UPDATE` modifies active data immediately. There's no `PATCH` alias—just standard `UPDATE`. Child entity updates fire independently of the parent.
+
+```typescript
+srv.before('UPDATE', 'EntityZ', async (req: Request) => {
+  // Validate the changes before they're applied
+  if (req.data.amount && req.data.amount < 0) {
+    req.error(400, 'Amount must be positive');
+  }
+
+  // Calculations based on changed fields
+  if (req.data.quantity && req.data.pricePerUnit) {
+    req.data.totalPrice = req.data.quantity * req.data.pricePerUnit;
+  }
+});
+
+srv.after('UPDATE', 'EntityZ', async (data: EntityZ, req: Request) => {
+  // Changes are already persisted
+  await notifyRelatedSystems(data.ID);
+});
+
+// Composition child: fires when EntityW items are individually updated
+srv.before('UPDATE', 'EntityW', async (req: Request) => {
+  if (req.data.quantity && req.data.quantity < 0) {
+    req.error(400, 'Quantity must be positive');
+  }
+});
+```
+
+### DELETE
+
+Same event name as with drafts, but there's no draft/active distinction to worry about. CAP still cascades deletion to `EntityW` via the composition relationship.
+
+```typescript
+srv.before('DELETE', 'EntityZ', async (req: Request) => {
+  const { ID } = req.data;
+  const entity = await SELECT.one.from('EntityZ').where({ ID });
+
+  if (entity.status === 'LOCKED') {
+    req.error(403, 'Cannot delete locked entities');
+  }
+  // CAP automatically cascades deletion to EntityW via composition
+});
+
+srv.after('DELETE', 'EntityZ', async (data: EntityZ, req: Request) => {
+  await logDeletion(data.ID, req.user.id);
+});
+
+// Composition child: fires when an individual EntityW item is deleted
+srv.before('DELETE', 'EntityW', async (req: Request) => {
+  const { ID } = req.data;
+  const item = await SELECT.one.from('EntityW').where({ ID });
+  if (item.protected) {
+    req.error(403, 'This item cannot be deleted');
+  }
+});
+```
+
+### The Key Takeaway
+
+Without drafts, the handler model is simple: **one event per operation, applied immediately to active data**. Child entities in compositions fire their own standard CRUD events — no special draft-aware event names needed.
+
+With drafts, a single user action like "Save" triggers a multi-step choreography (`SAVE` on drafts → `CREATE`/`UPDATE` on active entities), and the child entity events change too (`PATCH` instead of `UPDATE`, `NEW` instead of `CREATE`). The draft system gives you transactional editing across an entire composition hierarchy, but that power comes with the complexity of understanding which events fire and when.
 
 ## Key Patterns & Best Practices
 
@@ -352,3 +523,36 @@ The draft system in SAP CAP is a powerful pattern that becomes intuitive once yo
 The key is remembering that draft compositions form a single transactional unit. CAP handles the complexity of coordinating changes across your hierarchy; your job is to add the business logic that makes your application unique.
 
 What draft patterns have you found most useful in your CAP projects? I'd love to hear about the edge cases and creative solutions you've discovered.
+
+---
+
+## Rules for AI Code Assistants (CAP Draft)
+
+```
+# SAP CAP Draft Handler Events
+
+## Draft root entity (EntityA.drafts)
+- Create new draft    → NEW       (not CREATE)
+- Edit field in draft → PATCH     (not UPDATE)
+- Save/activate draft → SAVE → then CREATE (new) or UPDATE (edit) on active entity
+- Edit existing       → EDIT      on active entity (not drafts)
+- Discard draft       → DISCARD   (not discard)
+- Delete              → DELETE    on EntityA or EntityA.drafts
+
+## Draft composition child (EntityB.drafts) — independent from parent
+- Add child row       → NEW       on EntityB.drafts
+- Edit child field    → PATCH     on EntityB.drafts
+- Remove child row    → DELETE    on EntityB.drafts
+- No handler needed against parent; access via req.data.parent_ID if required
+
+## Non-draft entities — standard CRUD only
+- CREATE / READ / UPDATE / DELETE on the entity directly
+- No .drafts qualifier, no NEW/PATCH/SAVE/EDIT/DISCARD
+
+## Key rules
+- Always use .drafts qualifier to distinguish draft from active entity
+- SAVE handlers go on EntityA.drafts; activate handlers on active EntityA
+- before('SAVE') is the last validation checkpoint before activation
+- after() handlers are for side effects (notifications, external calls)
+- All activation operations are transactional; req.error() rolls back everything
+```
